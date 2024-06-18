@@ -1,0 +1,35 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+    - name: Clear Terraform Cache (Optional)
+      # This step helps refresh environment variables if caching is an issue
+      run: terraform init -force-copy  # Optional
+    
+    - name: Initialize Terraform
+      run: terraform init -backend-config=backend.tfvars
+
+    - name: Run Terraform Plan
+      run: terraform plan
+
+    - name: Apply Terraform Configuration (Optional)
+      run: terraform apply -auto-approve
+
+env:   
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
